@@ -1,0 +1,5 @@
+Explique o porquê do resultado np.all(b*A == A*b) -> True:
+
+O que realmente está acontecendo é a multiplicação de cada vetor contido na matriz A pelo vetor b e vice-versa, 
+devido a forma como o Python entende uma matriz do numpy.
+Para realizar a multiplicação de matriz da forma correta, é necessario usar a função dot ou o simbolo @
