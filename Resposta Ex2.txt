@@ -1,0 +1,5 @@
+Resposta 1: Filtro média borra mais que o Gaussiano, e o filtro mediana remove os ruidos da imagem.
+
+Resposta 2: Detector Laplace possoui bordas menos destacadas. Sobel apresenta bordas mais fortes e ruido branco consideravel. Roberts possui um melhor resultado,
+com menos ruido, mas ainda presente, e bordas destacadas. Canny apresenta melhor resultado de todos, sem ruido e destacando a borda. 
+

@@ -231,9 +231,9 @@ def closing(image, tam):
     # Fechamento é a erosão de uma dilatação
     return erosion(dilatation(image,tam), tam)
 
-# Recebe uma imagem binarizada e o tipo do kernel
+# Recebe uma imagem e o tipo do kernel
 # Exemplo chamada: dilatation(imagem, 1)
-def edgeDetection(image, type):
+def edgeDetectionLaplace(image, type):
     w, h = image.shape
 
     # Criando matriz que irá receber os valores
@@ -267,11 +267,274 @@ def edgeDetection(image, type):
 
                 # Senão estiver fora dos limites
                 if (newX >= 0 and newX < w) and (newY >= 0 and newY < h):
-                    # Se houver um pixel visinho background e bater com o elemento do kernel, então o pixel vira background
+                    # Multiplica o pixel pelo pixel kernel correspondente
                     value += image[newX][newY] * kernel.flat[index]
 
 
 
-            imageEdgeD[x][y] = np.uint8(value)
+            imageEdgeD[x][y] = np.clip(value, 0, 255)
 
     return imageEdgeD
+
+##### Funções do exercicio 2 #####
+# Novo modo de obter pixels vizinhos
+
+def gauss_create_kernel(sigma=1, size_x=3, size_y=3):
+    '''
+    Create normal (gaussian) distribuiton
+    '''
+    x, y = np.meshgrid(np.linspace(-1, 1, size_x), np.linspace(-1, 1, size_y))
+    calc = 1 / ((2 * np.pi * (sigma ** 2)))
+    exp = np.exp(-(((x ** 2) + (y ** 2)) / (2 * (sigma ** 2))))
+
+    return exp * calc
+
+# Média
+def mean(image, tam):
+
+    w, h = image.shape
+    #print(w,h)
+
+    # Criando matriz que irá receber os valores
+    imageMean = np.zeros((w, h), np.uint8)
+
+    if tam == 3:
+        kernel = np.array([[1/9,1/9,1/9],[1/9,1/9,1/9], [1/9,1/9,1/9]])
+        tamB = 1
+    elif tam == 5:
+        kernel = [[1/25]*25] * 25
+        tamB = 2
+    elif tam == 7:
+        kernel = [[1 / 49] * 49] * 49
+        tamB = 3
+    else:
+        print("Tamanho não suportado!!!")
+        return
+
+    # Adiciona borda virtual
+    image_copy = np.pad(image.copy(), tamB, mode="constant")
+
+    #print(image_copy[0:10,0:10])
+    #print(image_copy[tamB-1:tam,tamB-1:tam])
+    #print(image_copy[tamB:tam,tamB:tam])
+
+    for x in range(w):
+        for y in range(h):
+            neighbourPixels = image_copy[x:x+tam,y:y+tam]
+            #print(neighbourPixels)
+
+            value = 0
+
+            for i in range(tam):
+                for j in range(tam):
+                    value += neighbourPixels[i][j] * kernel[i][j]
+
+            imageMean[x][y] = np.uint8(np.clip(value, 0, 255))
+            #print(x,y)
+
+    return imageMean
+
+# Gaussiano
+def gaussian(image, tam):
+
+    w, h = image.shape
+    #print(w,h)
+
+    # Criando matriz que irá receber os valores
+    imageGaus = np.zeros((w, h), np.uint8)
+
+    # https://www.nicolaromano.net/wp-content/uploads/2020/12/gaussian_kernels.png
+    if tam == 3:
+        kernel = gauss_create_kernel(1, tam, tam)
+        tamB = 1
+    elif tam == 5:
+        kernel = gauss_create_kernel(1, tam,tam)
+        tamB = 2
+    elif tam == 7:
+        kernel = gauss_create_kernel(1, tam,tam)
+        tamB = 3
+    else:
+        print("Tamanho não suportado!!!")
+        return
+
+    # Adiciona borda virtual
+    image_copy = np.pad(image.copy(), tamB, mode="constant")
+
+    for x in range(w):
+        for y in range(h):
+
+            neighbourPixels = image_copy[x:x+tam,y:y+tam]
+
+            value = 0
+            #print(neighbourPixels)
+            #print(kernel)
+
+            for i in range(tam):
+                for j in range(tam):
+                    value += neighbourPixels[i][j] * kernel[i][j]
+                    #print(value)
+
+            value = value/np.sum(kernel)
+            #imageGaus[x][y] = np.sum(np.multiply(kernel, neighbourPixels))/np.sum(kernel)
+            imageGaus[x][y] = np.uint8(np.clip(value, 0, 255))
+            #imageGaus[x][y] = value
+
+    return imageGaus
+
+# Mediana
+def median(image, tam):
+
+    w, h = image.shape
+    #print(w,h)
+
+    # Criando matriz que irá receber os valores
+    imageMedian = np.zeros((w, h), np.uint8)
+
+    if tam == 3:
+        tamB = 1
+    elif tam == 5:
+        tamB = 2
+    elif tam == 7:
+        tamB = 3
+    else:
+        print("Tamanho não suportado!!!")
+        return
+
+    # Adiciona borda virtual
+    image_copy = np.pad(image.copy(), tamB, mode="constant")
+
+    #print(image_copy[0:10,0:10])
+    #print(image_copy[tamB-1:tam,tamB-1:tam])
+    #print(image_copy[tamB:tam,tamB:tam])
+
+    for x in range(w):
+        for y in range(h):
+
+            neighbourPixels = image_copy[x:x+tam,y:y+tam]
+
+            value = np.sort(np.reshape(neighbourPixels, -1))
+            imageMedian[x][y] = value[int((tam**2)/2)]
+
+
+    return imageMedian
+
+# Laplace
+def laplacian(image, type, c):
+
+    w, h = image.shape
+    #print(w,h)
+
+    # Criando matriz que irá receber os valores
+    imageLaplace = np.zeros((w, h), np.uint8)
+
+    imageLa = edgeDetectionLaplace(image, type)
+
+    for x in range(w):
+        for y in range(h):
+
+            value = image[x][y] + c * imageLa[x][y]
+            imageLaplace[x][y] = np.uint8(np.clip(value, 0, 255))
+
+    return imageLaplace
+
+import cv2
+# Unsharp
+def unsharp(image, tam, k):
+
+    w, h = image.shape
+    #print(w,h)
+
+    # Criando matriz que irá receber os valores
+    imageUnsharp = np.zeros((w, h), np.uint8)
+
+    imageSuav = gaussian(image, tam)
+
+    '''
+    for x in range(w):
+        for y in range(h):
+
+            value = int(image[x][y]) - int(imageSuav[x][y])
+            value = image[x][y] + k * value
+            imageUnsharp[x][y] = np.uint8(np.clip(value, 0, 255))
+    '''
+    matAux = (image - imageSuav)
+    imageUnsharp = image + k*matAux
+
+    return imageUnsharp
+
+# Roberts
+def roberts(image):
+
+    w, h = image.shape
+    #print(w,h)
+
+    # Criando matriz que irá receber os valores
+    imageRob = np.zeros((w, h), np.uint8)
+
+    kernel1 = np.array([[0, 1], [-1, 0]])
+    kernel2 = np.array([[1,0], [0,-1]])
+    tam = 2
+
+    # Adiciona borda virtual
+    image_copy = np.pad(image.copy(), (0, 1), mode="constant")
+
+    for x in range(w):
+        for y in range(h):
+
+            neighbourPixels = image_copy[x:x + tam, y:y + tam]
+            value1 = 0
+            value2 = 0
+            value = 0
+
+            for i in range(tam):
+                for j in range(tam):
+                    pixel = neighbourPixels[i][j]
+                    value1 += pixel * kernel1[i][j]
+                    value2 += pixel * kernel2[i][j]
+
+            value = abs(value1) + abs(value2)
+            imageRob[x][y] = np.uint8(np.clip(value, 0, 255))
+
+    return imageRob
+
+# Sobel
+def sobel(image):
+
+    w, h = image.shape
+    #print(w,h)
+
+    # Criando matriz que irá receber os valores
+    imageSobel = np.zeros((w, h), np.uint8)
+
+
+    kernel1 = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
+    kernel2 = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
+
+    tamB = 1
+    tam = 3
+
+    # Adiciona borda virtual
+    image_copy = np.pad(image.copy(), tamB, mode="constant")
+
+    #print(image_copy[0:10,0:10])
+    #print(image_copy[tamB-1:tam,tamB-1:tam])
+    #print(image_copy[tamB:tam,tamB:tam])
+
+    for x in range(w):
+        for y in range(h):
+
+            neighbourPixels = image_copy[x:x + tam, y:y + tam]
+            value1 = 0
+            value2 = 0
+
+            for i in range(tam):
+                for j in range(tam):
+                    pixel = neighbourPixels[i][j]
+                    value1 += pixel * kernel1[i][j]
+                    value2 += pixel * kernel2[i][j]
+
+            value = abs(value1) + abs(value2)
+            imageSobel[x][y] = np.uint8(np.clip(value, 0, 255))
+
+    return imageSobel
+

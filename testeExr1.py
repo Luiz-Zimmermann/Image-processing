@@ -183,12 +183,12 @@ if __name__ == "__main__":
     # Tipo 1: kernel em formato de cruz com o valor 4 no centro e os demais valores igual a -1
     # Tipo 2: kernel com o valor 8 no centro e nas demais posições ao redor o valor -1
     tStart = time.time()
-    imgEdgeD1 = op.edgeDetection(img, 1)
+    imgEdgeD1 = op.edgeDetectionLaplace(img, 1)
     tEnd = time.time() - tStart
     print("Edge detection kernel 1 done !!", tEnd, "s")
 
     tStart = time.time()
-    imgEdgeD2 = op.edgeDetection(img, 2)
+    imgEdgeD2 = op.edgeDetectionLaplace(img, 2)
     tEnd = time.time() - tStart
     print("Edge detection kernel 2 done !!", tEnd, "s")
 
