@@ -230,7 +230,7 @@ begin
 													 i_B => w_addr_MEM,
 													 o_S => w_addr_offMux); 
 													 
-	u_valid : slidingwindow_valid port map(i_addr  => w_addr_offset,
+	u_valid : slidingwindow_valid port map(i_addr  => w_addr_MEM,
 														o_VALID => w_valid);
 														
 	u_and_wt : and_1bit port map( i_A => w_valid,

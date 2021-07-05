@@ -30,8 +30,8 @@ begin
     if rising_edge(clock) then
       if we = '1' then
         ram(to_integer(unsigned(address))) <= datain;
-        WRITE (L, datain, Left, 2);
-        WRITELINE (F, L);
+        --WRITE (L, datain, Left, 2);
+        --WRITELINE (F, L);
 		end if;	    	    
     end if;
 

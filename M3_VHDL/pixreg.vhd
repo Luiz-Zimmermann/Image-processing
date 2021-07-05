@@ -16,12 +16,12 @@ entity pixreg is
     i_VALID : in std_logic;
     i_PIX   : in std_logic;
     i_CLK   : in std_logic;
-    o_PIX   : out std_logic
+    o_PIX   : out std_logic 
   );
 end entity;
 
 architecture arch of pixreg is
-  signal r_PIX : std_logic;
+  signal r_PIX : std_logic := '0';
 begin
   
   -- cria um process para armazenamento de um pixel

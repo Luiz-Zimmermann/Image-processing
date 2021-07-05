@@ -17,7 +17,7 @@ end entity RAM;
 architecture arch of RAM is
 
    type ram_type is array (0 to (2**address'length)-1) of std_logic;
-   signal ram : ram_type;
+   signal ram : ram_type := (others => '0');
 
 begin
 
